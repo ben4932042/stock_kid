@@ -1,0 +1,97 @@
+import datetime
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+import json
+
+def create_assist_date(datestart=None, dateend=None):
+    if datestart is None:
+        datestart = '2016-01-01'
+    if dateend is None:
+        dateend = datetime.datetime.now().strftime( '%Y-%m-%d' )
+
+    datestart = datetime.datetime.strptime( datestart, '%Y-%m-%d' )
+    dateend = datetime.datetime.strptime( dateend, '%Y-%m-%d' )
+    date_list = []
+    date_list.append( datestart.strftime( '%Y-%m-%d' ) )
+    while datestart < dateend:
+        datestart += datetime.timedelta( days=+1 )
+        date_list.append( datestart.strftime( '%Y-%m-%d' ) )
+    return date_list
+Analysis_Dic = {}
+# start time to now
+Time = create_assist_date("2016-01-01")
+
+emp_list = []
+headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36'}
+stockiid = '2330'
+count_success = 0
+count_fail = 0
+for time in Time:
+    url = 'https://jdata.yuanta.com.tw/z/zc/zco/zco.djhtm?a={}&e={}&f={}'.format(stockiid,time,time)
+    res = requests.get( url, headers=headers )
+    res.encoding = 'big5'
+    # 爬取固定的table
+    soup = BeautifulSoup( res.text, 'html.parser' )
+    soup = soup.select('table[id="oMainTable"]')
+
+    try:
+        df_list = pd.read_html( str( soup[0] ) )
+        df = pd.DataFrame( df_list[0] )
+        # print( df.iloc[[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], [0, 1, 2, 4, 5, 6, 7, 9]] )
+        table= df.iloc[[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], [0, 4, 5, 9]] #只取名單
+        table = table.reset_index(drop=True)
+        table.columns = ['buy','p_buy','sell','p_sell']
+        table = table.to_dict()
+        Analysis_Dic[time]=table
+        count_success+=1
+        print(table)
+    except IndexError as f:
+        print( '======================================' )
+        print(time + ' 未開市')
+        print('=======================================')
+        emp_list.append(time)
+        count_fail += 1
+
+print('=======================================================')
+print('成功下載天數：',count_success)
+print('---------------------------------')
+print('未下載天數：',count_fail)
+print(emp_list)
+
+with open('./analysis.json', 'a' ) as outfile:
+    json.dump( Analysis_Dic, outfile, ensure_ascii=False )
+    outfile.write( '\n' )
+print('完成')
+
+
+
+
+
+
+
+
+
+# test
+
+
+# time = '2016-08-23'
+# stockiid = '2330'
+#
+# url = 'https://jdata.yuanta.com.tw/z/zc/zco/zco.djhtm?a={}&e={}&f={}'.format(stockiid,time,time)
+# res = requests.get( url, headers=headers )
+# res.encoding = 'big5'
+# # 爬取固定的table
+# soup = BeautifulSoup( res.text, 'html.parser' )
+# soup = soup.select('table[id="oMainTable"]')
+#
+#
+# df_list = pd.read_html( str( soup[0] ) )
+# df = pd.DataFrame( df_list[0] )
+# print(df)
+#         # print( df.iloc[[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], [0, 1, 2, 4, 5, 6, 7, 9]] )
+# table= df.iloc[[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], [0, 4,5,9]] #只取名單
+# table = table.reset_index(drop=True)
+# print(table)
+
+# response :the company is not exist
