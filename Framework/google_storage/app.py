@@ -5,9 +5,10 @@ from google.cloud import storage
 import random
 from confluent_kafka import Consumer, KafkaException, KafkaError
 import sys
+import os
+from dotenv import load_dotenv,find_dotenv
 
-secretFile = json.load(open("secretFile.txt",'r'))
-server=secretFile['server']+':'+ secretFile['sever_port']
+server = os.getenv("KAFKA_SERVER")
 
 storage_client = storage.Client()
 bucket = storage_client.get_bucket('stock_news')
