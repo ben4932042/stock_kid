@@ -61,7 +61,7 @@ def redis_to_kafka(date):
 
 
     #iproducer = None
-    def kafkaproducer(server='35.236.145.238:9092',topic='test_request',ID='User_ID',query='test'):
+    def kafkaproducer(server=KAFKA_HOST,topic='test_request',ID='User_ID',query='test'):
         #global iproducer
         return_value = 0
         def error_cb(err):
