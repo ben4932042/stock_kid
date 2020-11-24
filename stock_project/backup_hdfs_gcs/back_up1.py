@@ -261,13 +261,13 @@ for i in tmp_list:
     i = i.replace(' ', '')
     stock_iids.append(i)
 # mysql
-db = pymysql.connect(host='0.tcp.ngrok.io',port=18609,user='dbuser6',passwd='aabb1234',db='Project_test')
+db = pymysql.connect(host=MYSQL_HOST,port=MYSQL_PORT,user=MYSQL_USER,passwd=MYSQL_PASSWORD,db=MYSQL_DATABASE)
 cur = db.cursor()
 # gcs
 storage_client = storage.Client.from_service_account_json('C:/Users/User/Desktop/halogen-base-283002-5b45f8b24b1f.json')
 bucket = storage_client.get_bucket('sql_stock_backup')
 # hadoop
-hduser = Client("http://192.168.85.133:50070/",root="/",timeout=10000,session=False)
+hduser = Client(HDFS_HOST,root="/",timeout=10000,session=False)
 def mkdirs(client, hdfs_path):
     client.makedirs(hdfs_path)
 def put_to_hdfs(client, local_path, hdfs_path):
